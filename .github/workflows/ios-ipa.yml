@@ -40,7 +40,7 @@ jobs:
       - name: Package unsigned IPA
         run: |
           mkdir -p Payload
-          cp -R build/Build/Products/Release-iphoneos/RecRoomReborn.app Payload/
+          cp -R "build/Build/Products/Release-iphoneos/Rec Room Reborn.app" Payload/
           zip -r RecRoomReborn-unsigned.ipa Payload
 
       - name: Upload IPA artifact
