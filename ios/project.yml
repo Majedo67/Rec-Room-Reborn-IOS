@@ -1,0 +1,23 @@
+name: RecRoomReborn
+options:
+  bundleIdPrefix: net.majedo67
+  deploymentTarget:
+    iOS: "16.0"
+targets:
+  RecRoomReborn:
+    type: application
+    platform: iOS
+    sources:
+      - RecRoomReborn
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: net.majedo67.recroomreborn
+        PRODUCT_NAME: Rec Room Reborn
+        INFOPLIST_KEY_CFBundleDisplayName: Rec Room Reborn
+        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.games
+        INFOPLIST_KEY_UILaunchScreen_Generation: true
+        SWIFT_VERSION: "5.0"
+        TARGETED_DEVICE_FAMILY: "1"
+        IPHONEOS_DEPLOYMENT_TARGET: "16.0"
+        GENERATE_INFOPLIST_FILE: YES
+        CODE_SIGNING_ALLOWED: NO
