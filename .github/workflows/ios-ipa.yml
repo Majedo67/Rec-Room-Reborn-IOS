@@ -1,21 +1,12 @@
 name: Build Rec Room Reborn iOS IPA
 
+# Start a build only when you press "Run workflow" in GitHub Actions.
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - "ios/**"
-      - ".github/workflows/ios-ipa.yml"
-
-# Prevent duplicate builds from competing for the same hosted runner.
-concurrency:
-  group: rec-room-reborn-ios-ipa
-  cancel-in-progress: false
 
 jobs:
   build:
-    # Try the macOS 14 hosted image instead of the runner pool that stalled.
-    runs-on: macos-14
+    runs-on: macos-latest
     timeout-minutes: 45
     steps:
       - name: Checkout
