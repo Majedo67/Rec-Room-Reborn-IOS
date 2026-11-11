@@ -1,8 +1,17 @@
 name: Build Rec Room Reborn iOS IPA
 
-# Start a build only when you press "Run workflow" in GitHub Actions.
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "ios/**"
+      - ".github/workflows/ios-ipa.yml"
+
+concurrency:
+  group: rec-room-reborn-ios-ipa
+  cancel-in-progress: false
 
 jobs:
   build:
