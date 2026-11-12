@@ -367,11 +367,11 @@ final class ArenaGameController: NSObject, ObservableObject, SCNSceneRendererDel
 
         // Large blue-tinted windows and timber frames.
         for x in [-8.0, -3.0, 3.0, 8.0] {
-            addBox(width: 3.2, height: 2.4, length: 0.12, at: SCNVector3(x, 4.5, -11.78), color: UIColor(red: 0.28, green: 0.68, blue: 0.83, alpha: 1))
-            addBox(width: 0.10, height: 2.7, length: 0.18, at: SCNVector3(x - 1.65, 4.5, -11.65), color: wood)
-            addBox(width: 0.10, height: 2.7, length: 0.18, at: SCNVector3(x + 1.65, 4.5, -11.65), color: wood)
-            addBox(width: 3.4, height: 0.10, length: 0.18, at: SCNVector3(x, 3.15, -11.65), color: wood)
-            addBox(width: 3.4, height: 0.10, length: 0.18, at: SCNVector3(x, 5.85, -11.65), color: wood)
+            addBox(width: 3.2, height: 2.4, length: 0.12, at: SCNVector3(Float(x), 4.5, -11.78), color: UIColor(red: 0.28, green: 0.68, blue: 0.83, alpha: 1))
+            addBox(width: 0.10, height: 2.7, length: 0.18, at: SCNVector3(Float(x - 1.65), 4.5, -11.65), color: wood)
+            addBox(width: 0.10, height: 2.7, length: 0.18, at: SCNVector3(Float(x + 1.65), 4.5, -11.65), color: wood)
+            addBox(width: 3.4, height: 0.10, length: 0.18, at: SCNVector3(Float(x), 3.15, -11.65), color: wood)
+            addBox(width: 3.4, height: 0.10, length: 0.18, at: SCNVector3(Float(x), 5.85, -11.65), color: wood)
         }
 
         // Ceiling grid.
