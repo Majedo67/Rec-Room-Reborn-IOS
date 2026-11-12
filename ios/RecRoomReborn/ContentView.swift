@@ -394,7 +394,10 @@ final class ArenaGameController: NSObject, ObservableObject, SCNSceneRendererDel
             for i in 0..<6 {
                 let x = Float(-7 + i * 2)
                 let z = Float(-5 - (i % 2) * 3)
-                addBox(width: 2.0, height: 0.45, length: 2.0, at: SCNVector3(x, Float(0.45 + (i % 3) * 0.35), z), color: i.isMultiple(of: 2) ? .systemTeal : .systemPurple)
+                let platformHeight: Float = 0.45 + Float(i % 3) * 0.35
+                let platformColor: UIColor = i.isMultiple(of: 2) ? UIColor.systemTeal : UIColor.systemPurple
+                let platformPosition = SCNVector3(x, platformHeight, z)
+                addBox(width: 2.0, height: 0.45, length: 2.0, at: platformPosition, color: platformColor)
             }
         } else {
             // Rec Center welcome desk and colorful activity portals.
