@@ -63,15 +63,15 @@ struct ContentView: View {
     private var homePage: some View {
         VStack(alignment: .leading, spacing: 20) {
             header.padding(.top, 12)
-            Text("Your next adventure starts here.")
+            Text("WELCOME BACK, PLAYER")
                 .font(.system(size: 17, weight: .semibold, design: .rounded)).foregroundStyle(.white.opacity(0.8))
             Button { page = .play } label: {
                 ZStack(alignment: .bottomLeading) {
                     RoundedRectangle(cornerRadius: 26).fill(LinearGradient(colors: [.blue, .purple, .cyan], startPoint: .topLeading, endPoint: .bottomTrailing))
                     VStack(alignment: .leading, spacing: 8) {
                         Image(systemName: "gamecontroller.fill").font(.system(size: 34))
-                        Text("PLAY NOW").font(.system(size: 25, weight: .black, design: .rounded))
-                        Text(selectedRoom + " • Local play").font(.system(size: 13, weight: .semibold))
+                        Text("PLAY").font(.system(size: 25, weight: .black, design: .rounded))
+                        Text("@Player  •  " + selectedRoom).font(.system(size: 13, weight: .semibold))
                     }.foregroundStyle(.white).padding(22)
                 }.frame(height: 170)
             }.buttonStyle(.plain)
@@ -82,7 +82,7 @@ struct ContentView: View {
                 homeTile("Social Lobby", "person.3.fill", .green) { page = .social }
             }
             Spacer()
-            Text("This build is an original offline prototype. Online multiplayer is not connected yet.")
+            Text("A colorful social game world • Offline prototype")
                 .font(.system(size: 11, weight: .medium)).foregroundStyle(.white.opacity(0.5))
         }.padding(20)
     }
@@ -102,7 +102,7 @@ struct ContentView: View {
         VStack(alignment: .leading, spacing: 16) {
             pageHeader("Explore Rooms", subtitle: "Choose a place to visit")
             ForEach(rooms, id: \.0) { room in
-                Button { selectedRoom = room.0 } label: {
+                Button { selectedRoom = room.0; game.selectRoom(room.0) } label: {
                     HStack(spacing: 14) {
                         Image(systemName: room.2).font(.system(size: 25, weight: .bold)).foregroundStyle(.cyan)
                             .frame(width: 54, height: 54).background(.cyan.opacity(0.12), in: RoundedRectangle(cornerRadius: 14))
@@ -130,7 +130,7 @@ struct ContentView: View {
                 VStack(spacing: 12) {
                     Image(systemName: "person.fill").font(.system(size: 100, weight: .regular)).foregroundStyle(colorForAvatar)
                     Text("PLAYER").font(.system(size: 13, weight: .black, design: .rounded)).tracking(3).foregroundStyle(.white)
-                    Text("Classic capsule avatar").font(.system(size: 12)).foregroundStyle(.white.opacity(0.6))
+                    Text("Starter avatar preview").font(.system(size: 12)).foregroundStyle(.white.opacity(0.6))
                 }
             }.frame(height: 270)
             Text("AVATAR COLOR").font(.system(size: 12, weight: .black)).tracking(2).foregroundStyle(.white.opacity(0.7))
@@ -142,7 +142,7 @@ struct ContentView: View {
                     }.buttonStyle(.plain)
                 }
             }
-            Text("More outfits, accessories, and saved avatar profiles are not implemented yet.")
+            Text("This is a color preview for now. Full character models, outfits, and accessories are still being developed.")
                 .font(.system(size: 11)).foregroundStyle(.white.opacity(0.5))
             Spacer()
         }.padding(20)
@@ -324,30 +324,91 @@ final class ArenaGameController: NSObject, ObservableObject, SCNSceneRendererDel
         buildArena()
     }
 
-    private func buildArena() {
-        scene.background.contents = UIColor(red: 0.04, green: 0.07, blue: 0.16, alpha: 1)
+    func selectRoom(_ room: String) {
+        scene.rootNode.childNodes.forEach { $0.removeFromParentNode() }
+        lastTime = 0
+        grounded = true
+        verticalSpeed = 0
+        player.position = SCNVector3(0, 0.78, 4)
+        message = "Welcome to \(room) • Explore!"
+        buildArena(room: room)
+    }
+
+    private func buildArena(room: String = "Rec Center") {
+        let isDorm = room == "Dorm Room"
+        let isParkour = room == "Parkour Course"
+        let wood = UIColor(red: 0.58, green: 0.34, blue: 0.17, alpha: 1)
+        let cream = UIColor(red: 0.91, green: 0.86, blue: 0.72, alpha: 1)
+        let orange = UIColor(red: 0.96, green: 0.39, blue: 0.12, alpha: 1)
+        scene.background.contents = UIColor(red: 0.55, green: 0.72, blue: 0.82, alpha: 1)
 
         let camera = SCNCamera()
-        camera.fieldOfView = 62
+        camera.fieldOfView = 66
         cameraNode.camera = camera
-        cameraNode.position = SCNVector3(0, 6, 9)
+        cameraNode.position = SCNVector3(0, 5.8, 9)
         scene.rootNode.addChildNode(cameraNode)
 
         let floor = SCNFloor()
         floor.reflectivity = 0
-        floor.firstMaterial?.diffuse.contents = UIColor(red: 0.12, green: 0.16, blue: 0.27, alpha: 1)
+        floor.firstMaterial?.diffuse.contents = wood
         let floorNode = SCNNode(geometry: floor)
         floorNode.position.y = -0.08
         scene.rootNode.addChildNode(floorNode)
 
-        addBox(width: 24, height: 0.35, length: 0.5, at: SCNVector3(0, 0.15, -12), color: .systemBlue)
-        addBox(width: 24, height: 0.35, length: 0.5, at: SCNVector3(0, 0.15, 12), color: .systemBlue)
-        addBox(width: 0.5, height: 0.35, length: 24, at: SCNVector3(-12, 0.15, 0), color: .systemBlue)
-        addBox(width: 0.5, height: 0.35, length: 24, at: SCNVector3(12, 0.15, 0), color: .systemBlue)
+        // Warm room walls, orange trim and ceiling beams.
+        addBox(width: 24, height: 7, length: 0.35, at: SCNVector3(0, 3.5, -12), color: cream)
+        addBox(width: 0.35, height: 7, length: 24, at: SCNVector3(-12, 3.5, 0), color: cream)
+        addBox(width: 0.35, height: 7, length: 24, at: SCNVector3(12, 3.5, 0), color: cream)
+        addBox(width: 24, height: 0.22, length: 0.42, at: SCNVector3(0, 2.1, -11.75), color: orange)
+        addBox(width: 24, height: 0.22, length: 0.42, at: SCNVector3(0, 2.1, 11.75), color: orange)
+        addBox(width: 24, height: 0.25, length: 0.25, at: SCNVector3(0, 6.9, -12), color: wood)
+        addBox(width: 0.25, height: 0.25, length: 24, at: SCNVector3(-12, 6.9, 0), color: wood)
+        addBox(width: 0.25, height: 0.25, length: 24, at: SCNVector3(12, 6.9, 0), color: wood)
 
-        addBox(width: 2, height: 1.2, length: 2, at: SCNVector3(-4, 0.6, -4), color: .systemPurple)
-        addBox(width: 2, height: 0.8, length: 2, at: SCNVector3(4, 0.4, -2), color: .systemTeal)
-        addBox(width: 1.5, height: 1.5, length: 1.5, at: SCNVector3(4, 0.75, 5), color: .systemIndigo)
+        // Large blue-tinted windows and timber frames.
+        for x in [-8.0, -3.0, 3.0, 8.0] {
+            addBox(width: 3.2, height: 2.4, length: 0.12, at: SCNVector3(x, 4.5, -11.78), color: UIColor(red: 0.28, green: 0.68, blue: 0.83, alpha: 1))
+            addBox(width: 0.10, height: 2.7, length: 0.18, at: SCNVector3(x - 1.65, 4.5, -11.65), color: wood)
+            addBox(width: 0.10, height: 2.7, length: 0.18, at: SCNVector3(x + 1.65, 4.5, -11.65), color: wood)
+            addBox(width: 3.4, height: 0.10, length: 0.18, at: SCNVector3(x, 3.15, -11.65), color: wood)
+            addBox(width: 3.4, height: 0.10, length: 0.18, at: SCNVector3(x, 5.85, -11.65), color: wood)
+        }
+
+        // Ceiling grid.
+        for x in stride(from: -10.0, through: 10.0, by: 2.0) {
+            addBox(width: 0.12, height: 0.12, length: 7, at: SCNVector3(x, 6.7, -5), color: wood)
+        }
+        for z in stride(from: -8.0, through: -2.0, by: 2.0) {
+            addBox(width: 20, height: 0.12, length: 0.12, at: SCNVector3(0, 6.7, z), color: wood)
+        }
+
+        if isDorm {
+            // Dorm bed, mattress, bedside table and wall poster.
+            addBox(width: 3.4, height: 0.45, length: 6.0, at: SCNVector3(7.2, 1.25, -5.5), color: wood)
+            addBox(width: 3.2, height: 0.35, length: 5.8, at: SCNVector3(7.2, 1.65, -5.5), color: UIColor(red: 0.28, green: 0.48, blue: 0.76, alpha: 1))
+            addBox(width: 3.5, height: 0.25, length: 0.25, at: SCNVector3(7.2, 2.3, -8.5), color: wood)
+            addBox(width: 1.8, height: 1.4, length: 0.12, at: SCNVector3(-5, 4.0, -11.7), color: orange)
+            addBox(width: 2.0, height: 0.9, length: 1.5, at: SCNVector3(-7, 0.45, -5), color: wood)
+            addBox(width: 2.0, height: 0.18, length: 1.5, at: SCNVector3(-7, 0.98, -5), color: cream)
+        } else if isParkour {
+            for i in 0..<6 {
+                let x = Float(-7 + i * 2)
+                let z = Float(-5 - (i % 2) * 3)
+                addBox(width: 2.0, height: 0.45, length: 2.0, at: SCNVector3(x, Float(0.45 + (i % 3) * 0.35), z), color: i.isMultiple(of: 2) ? .systemTeal : .systemPurple)
+            }
+        } else {
+            // Rec Center welcome desk and colorful activity portals.
+            addBox(width: 5.0, height: 1.3, length: 1.2, at: SCNVector3(0, 0.75, -8.5), color: UIColor(red: 0.08, green: 0.35, blue: 0.62, alpha: 1))
+            addBox(width: 5.2, height: 0.16, length: 1.35, at: SCNVector3(0, 1.48, -8.5), color: orange)
+            addBox(width: 3.0, height: 2.5, length: 0.2, at: SCNVector3(-7.5, 2.2, -11.65), color: .systemBlue)
+            addBox(width: 3.0, height: 2.5, length: 0.2, at: SCNVector3(7.5, 2.2, -11.65), color: .systemGreen)
+            addBox(width: 3.2, height: 1.5, length: 0.2, at: SCNVector3(0, 4.0, -11.55), color: orange)
+        }
+
+        if !isParkour {
+            addBox(width: 2.2, height: 0.9, length: 1.8, at: SCNVector3(-5, 0.45, -3), color: .systemBrown)
+            addBox(width: 2.2, height: 0.9, length: 1.8, at: SCNVector3(5, 0.45, 1), color: .systemBrown)
+        }
 
         let body = SCNCapsule(capRadius: 0.34, height: 1.55)
         body.firstMaterial?.diffuse.contents = UIColor.systemCyan
@@ -356,7 +417,7 @@ final class ArenaGameController: NSObject, ObservableObject, SCNSceneRendererDel
         player.position = SCNVector3(0, 0.78, 4)
         scene.rootNode.addChildNode(player)
 
-        let orbGeometry = SCNSphere(radius: 0.48)
+        let orbGeometry = SCNSphere(radius: 0.38)
         orbGeometry.firstMaterial?.diffuse.contents = UIColor.systemYellow
         orbGeometry.firstMaterial?.emission.contents = UIColor.systemOrange
         orb.geometry = orbGeometry
@@ -366,13 +427,13 @@ final class ArenaGameController: NSObject, ObservableObject, SCNSceneRendererDel
         let ambient = SCNNode()
         ambient.light = SCNLight()
         ambient.light?.type = .ambient
-        ambient.light?.intensity = 650
+        ambient.light?.intensity = 700
         scene.rootNode.addChildNode(ambient)
 
         let sun = SCNNode()
         sun.light = SCNLight()
         sun.light?.type = .omni
-        sun.light?.intensity = 900
+        sun.light?.intensity = 1100
         sun.position = SCNVector3(0, 10, 5)
         scene.rootNode.addChildNode(sun)
     }
