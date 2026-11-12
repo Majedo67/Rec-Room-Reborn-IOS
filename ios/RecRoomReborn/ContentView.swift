@@ -1,60 +1,233 @@
 import SwiftUI
 import SceneKit
 
+private enum GamePage: String, CaseIterable {
+    case home = "Home"
+    case rooms = "Rooms"
+    case avatar = "Avatar"
+    case create = "Create"
+    case play = "Play"
+    case social = "Social"
+}
+
 struct ContentView: View {
     @StateObject private var game = ArenaGameController()
+    @State private var page: GamePage = .home
+    @State private var selectedRoom = "Rec Center"
+    @State private var avatarColor = "Cyan"
+    @State private var roomName = "My Room"
+    @State private var roomDescription = "A room made by me"
+    @State private var placedObjects: [String] = []
+
+    private let colors: [(String, Color)] = [
+        ("Cyan", .cyan), ("Purple", .purple), ("Green", .green),
+        ("Orange", .orange), ("Pink", .pink), ("Blue", .blue)
+    ]
+    private let rooms = [
+        ("Rec Center", "Social hub • Local preview", "person.3.fill", "A bright place to meet and explore."),
+        ("Paintball Arena", "Team game • Local preview", "target", "A colorful arena for friendly matches."),
+        ("Parkour Course", "Obstacle course • Local preview", "figure.run", "Jump across platforms and reach the finish."),
+        ("Dorm Room", "Hangout • Local preview", "house.fill", "A cozy room to decorate.")
+    ]
 
     var body: some View {
         ZStack {
-            Color(red: 0.025, green: 0.035, blue: 0.10).ignoresSafeArea()
-
-            ArenaSceneView(controller: game)
-                .ignoresSafeArea()
-
-            VStack(spacing: 0) {
-                HStack {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("REC ROOM").font(.system(size: 12, weight: .black, design: .rounded)).tracking(3).foregroundStyle(Color.cyan)
-                        Text("REBORN ARENA").font(.system(size: 23, weight: .black, design: .rounded)).foregroundStyle(.white)
-                    }
-                    Spacer()
-                    Text("LOCAL PLAY")
-                        .font(.system(size: 10, weight: .heavy, design: .rounded))
-                        .tracking(1)
-                        .padding(.horizontal, 11).padding(.vertical, 8)
-                        .background(.green.opacity(0.18), in: Capsule())
-                        .foregroundStyle(.green)
+            Color(red: 0.035, green: 0.045, blue: 0.11).ignoresSafeArea()
+            Group {
+                switch page {
+                case .home: homePage
+                case .rooms: roomsPage
+                case .avatar: avatarPage
+                case .create: createPage
+                case .play: playPage
+                case .social: socialPage
                 }
-                .padding(.horizontal, 20).padding(.top, 12)
-
-                Text(game.message)
-                    .font(.system(size: 13, weight: .semibold, design: .rounded))
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 14).padding(.vertical, 9)
-                    .background(.black.opacity(0.48), in: Capsule())
-                    .padding(.top, 12)
-
-                Spacer()
-
-                HStack(alignment: .bottom) {
-                    Joystick { x, z in game.setMovement(x: x, z: z) }
-
-                    Spacer()
-
-                    VStack(spacing: 14) {
-                        ControlButton(title: "JUMP", symbol: "arrow.up", color: .cyan) {
-                            game.jump()
-                        }
-                        ControlButton(title: "INTERACT", symbol: "hand.tap", color: .orange) {
-                            game.interact()
-                        }
-                    }
-                }
-                .padding(.horizontal, 24)
-                .padding(.bottom, 30)
             }
         }
         .preferredColorScheme(.dark)
+    }
+
+    private var header: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 3) {
+                Text("REC ROOM").font(.system(size: 13, weight: .black, design: .rounded)).tracking(4).foregroundStyle(.cyan)
+                Text("REBORN").font(.system(size: 29, weight: .black, design: .rounded)).foregroundStyle(.white)
+            }
+            Spacer()
+            Text("OFFLINE BUILD").font(.system(size: 10, weight: .heavy, design: .rounded)).tracking(1)
+                .padding(.horizontal, 12).padding(.vertical, 9)
+                .background(.orange.opacity(0.18), in: Capsule()).foregroundStyle(.orange)
+        }
+    }
+
+    private var homePage: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            header.padding(.top, 12)
+            Text("Your next adventure starts here.")
+                .font(.system(size: 17, weight: .semibold, design: .rounded)).foregroundStyle(.white.opacity(0.8))
+            Button { page = .play } label: {
+                ZStack(alignment: .bottomLeading) {
+                    RoundedRectangle(cornerRadius: 26).fill(LinearGradient(colors: [.blue, .purple, .cyan], startPoint: .topLeading, endPoint: .bottomTrailing))
+                    VStack(alignment: .leading, spacing: 8) {
+                        Image(systemName: "gamecontroller.fill").font(.system(size: 34))
+                        Text("PLAY NOW").font(.system(size: 25, weight: .black, design: .rounded))
+                        Text(selectedRoom + " • Local play").font(.system(size: 13, weight: .semibold))
+                    }.foregroundStyle(.white).padding(22)
+                }.frame(height: 170)
+            }.buttonStyle(.plain)
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                homeTile("Explore Rooms", "square.grid.2x2.fill", .cyan) { page = .rooms }
+                homeTile("Customize Avatar", "person.crop.circle.fill", .purple) { page = .avatar }
+                homeTile("Create a Room", "hammer.fill", .orange) { page = .create }
+                homeTile("Social Lobby", "person.3.fill", .green) { page = .social }
+            }
+            Spacer()
+            Text("This build is an original offline prototype. Online multiplayer is not connected yet.")
+                .font(.system(size: 11, weight: .medium)).foregroundStyle(.white.opacity(0.5))
+        }.padding(20)
+    }
+
+    private func homeTile(_ title: String, _ symbol: String, _ tint: Color, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            VStack(alignment: .leading, spacing: 12) {
+                Image(systemName: symbol).font(.system(size: 25, weight: .bold)).foregroundStyle(tint)
+                Text(title).font(.system(size: 15, weight: .bold, design: .rounded)).foregroundStyle(.white)
+            }.frame(maxWidth: .infinity, minHeight: 92, alignment: .leading).padding(16)
+                .background(.white.opacity(0.07), in: RoundedRectangle(cornerRadius: 18))
+                .overlay(RoundedRectangle(cornerRadius: 18).stroke(.white.opacity(0.08)))
+        }.buttonStyle(.plain)
+    }
+
+    private var roomsPage: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            pageHeader("Explore Rooms", subtitle: "Choose a place to visit")
+            ForEach(rooms, id: \.0) { room in
+                Button { selectedRoom = room.0 } label: {
+                    HStack(spacing: 14) {
+                        Image(systemName: room.2).font(.system(size: 25, weight: .bold)).foregroundStyle(.cyan)
+                            .frame(width: 54, height: 54).background(.cyan.opacity(0.12), in: RoundedRectangle(cornerRadius: 14))
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(room.0).font(.system(size: 16, weight: .bold)).foregroundStyle(.white)
+                            Text(room.1).font(.system(size: 11, weight: .semibold)).foregroundStyle(.cyan)
+                            Text(room.3).font(.system(size: 12)).foregroundStyle(.white.opacity(0.65))
+                        }
+                        Spacer()
+                        Image(systemName: selectedRoom == room.0 ? "checkmark.circle.fill" : "circle")
+                            .foregroundStyle(selectedRoom == room.0 ? .green : .white.opacity(0.3))
+                    }.padding(14).background(.white.opacity(0.07), in: RoundedRectangle(cornerRadius: 18))
+                }.buttonStyle(.plain)
+            }
+            Button { page = .play } label: { primaryButton("ENTER \(selectedRoom.uppercased())", color: .cyan) }
+            Spacer()
+        }.padding(20)
+    }
+
+    private var avatarPage: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            pageHeader("Avatar Studio", subtitle: "Choose your prototype avatar color")
+            ZStack {
+                RoundedRectangle(cornerRadius: 28).fill(.white.opacity(0.06))
+                VStack(spacing: 12) {
+                    Image(systemName: "person.fill").font(.system(size: 100, weight: .regular)).foregroundStyle(colorForAvatar)
+                    Text("PLAYER").font(.system(size: 13, weight: .black, design: .rounded)).tracking(3).foregroundStyle(.white)
+                    Text("Classic capsule avatar").font(.system(size: 12)).foregroundStyle(.white.opacity(0.6))
+                }
+            }.frame(height: 270)
+            Text("AVATAR COLOR").font(.system(size: 12, weight: .black)).tracking(2).foregroundStyle(.white.opacity(0.7))
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 12) {
+                ForEach(colors, id: \.0) { item in
+                    Button { avatarColor = item.0 } label: {
+                        HStack { Circle().fill(item.1).frame(width: 20, height: 20); Text(item.0).font(.system(size: 13, weight: .bold)); Spacer(); if avatarColor == item.0 { Image(systemName: "checkmark") } }
+                            .foregroundStyle(.white).padding(12).background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
+                    }.buttonStyle(.plain)
+                }
+            }
+            Text("More outfits, accessories, and saved avatar profiles are not implemented yet.")
+                .font(.system(size: 11)).foregroundStyle(.white.opacity(0.5))
+            Spacer()
+        }.padding(20)
+    }
+
+    private var colorForAvatar: Color { colors.first(where: { $0.0 == avatarColor })?.1 ?? .cyan }
+
+    private var createPage: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            pageHeader("Room Creator", subtitle: "Make a simple local room plan")
+            Text("ROOM NAME").font(.system(size: 11, weight: .black)).tracking(2).foregroundStyle(.white.opacity(0.7))
+            TextField("My Room", text: $roomName).textFieldStyle(.roundedBorder)
+            Text("DESCRIPTION").font(.system(size: 11, weight: .black)).tracking(2).foregroundStyle(.white.opacity(0.7))
+            TextField("Describe your room", text: $roomDescription).textFieldStyle(.roundedBorder)
+            Text("ADD OBJECTS").font(.system(size: 11, weight: .black)).tracking(2).foregroundStyle(.white.opacity(0.7))
+            ForEach(["Cube", "Platform", "Sphere", "Light"], id: \.self) { item in
+                Button { placedObjects.append(item) } label: {
+                    HStack { Image(systemName: "plus.circle.fill").foregroundStyle(.cyan); Text(item).foregroundStyle(.white); Spacer(); Text("ADD").font(.system(size: 10, weight: .black)).foregroundStyle(.cyan) }
+                        .padding(14).background(.white.opacity(0.07), in: RoundedRectangle(cornerRadius: 13))
+                }.buttonStyle(.plain)
+            }
+            Text("Room draft: \(roomName.isEmpty ? "Untitled" : roomName) • \(placedObjects.count) objects")
+                .font(.system(size: 13, weight: .bold)).foregroundStyle(.green)
+            if !placedObjects.isEmpty {
+                Text(placedObjects.joined(separator: "  •  ")).font(.system(size: 11)).foregroundStyle(.white.opacity(0.6))
+                Button("Clear draft") { placedObjects.removeAll() }.foregroundStyle(.orange)
+            }
+            Text("This saves a temporary in-app draft only. Publishing rooms and a full Maker Pen editor still need to be built.")
+                .font(.system(size: 11)).foregroundStyle(.white.opacity(0.5))
+            Spacer()
+        }.padding(20)
+    }
+
+    private var socialPage: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            pageHeader("Social Lobby", subtitle: "Friends and multiplayer")
+            Image(systemName: "person.3.fill").font(.system(size: 58)).foregroundStyle(.cyan).frame(maxWidth: .infinity).padding(.top, 34)
+            Text("ONLINE SERVICES NOT CONNECTED").font(.system(size: 15, weight: .black, design: .rounded)).foregroundStyle(.orange).frame(maxWidth: .infinity)
+            Text("This version has no account system, friends list, chat, matchmaking, or live multiplayer server. The lobby screen is a placeholder until a backend is added.")
+                .font(.system(size: 14)).foregroundStyle(.white.opacity(0.75)).multilineTextAlignment(.center)
+            Spacer()
+        }.padding(20)
+    }
+
+    private var playPage: some View {
+        ZStack {
+            ArenaSceneView(controller: game).ignoresSafeArea()
+            VStack {
+                HStack {
+                    Button { page = .home } label: { Image(systemName: "chevron.left").font(.system(size: 17, weight: .black)).padding(12).background(.black.opacity(0.5), in: Circle()) }
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(selectedRoom.uppercased()).font(.system(size: 17, weight: .black, design: .rounded))
+                        Text("LOCAL PLAY • \(avatarColor.uppercased()) AVATAR").font(.system(size: 9, weight: .heavy)).tracking(1).foregroundStyle(.cyan)
+                    }
+                    Spacer()
+                    Text("BETA").font(.system(size: 10, weight: .black)).padding(9).background(.orange.opacity(0.2), in: Capsule()).foregroundStyle(.orange)
+                }.padding(.horizontal, 18).padding(.top, 12)
+                Text(game.message).font(.system(size: 12, weight: .semibold)).padding(10).background(.black.opacity(0.5), in: Capsule())
+                Spacer()
+                HStack(alignment: .bottom) {
+                    Joystick { x, z in game.setMovement(x: x, z: z) }
+                    Spacer()
+                    VStack(spacing: 12) {
+                        ControlButton(title: "JUMP", symbol: "arrow.up", color: .cyan) { game.jump() }
+                        ControlButton(title: "INTERACT", symbol: "hand.tap", color: .orange) { game.interact() }
+                    }
+                }.padding(.horizontal, 24).padding(.bottom, 28)
+            }.foregroundStyle(.white)
+        }
+    }
+
+    private func pageHeader(_ title: String, subtitle: String) -> some View {
+        VStack(alignment: .leading, spacing: 5) {
+            HStack {
+                Button { page = .home } label: { Image(systemName: "chevron.left").font(.system(size: 16, weight: .black)).padding(10).background(.white.opacity(0.1), in: Circle()) }
+                Text(title).font(.system(size: 24, weight: .black, design: .rounded))
+            }
+            Text(subtitle).font(.system(size: 13, weight: .medium)).foregroundStyle(.white.opacity(0.6))
+        }.padding(.top, 10)
+    }
+
+    private func primaryButton(_ title: String, color: Color) -> some View {
+        Text(title).font(.system(size: 13, weight: .black, design: .rounded)).tracking(1)
+            .foregroundStyle(.black).frame(maxWidth: .infinity).padding(16)
+            .background(color, in: RoundedRectangle(cornerRadius: 15))
     }
 }
 
